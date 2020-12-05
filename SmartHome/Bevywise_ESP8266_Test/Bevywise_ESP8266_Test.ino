@@ -3,7 +3,7 @@
 
 
 const char* ssid = "TechHome";
-const char* password = "12345678";
+const char* password = "0123456789";
 const char* mqtt_server = "178.124.145.121";
 
 #define mqtt_user "highlysecure"
