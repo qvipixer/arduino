@@ -12,7 +12,7 @@ const char* mqtt_server = "178.124.145.121";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
-int RECV_PIN = 5;
+int RECV_PIN = 2;
 
 void reconnect() 
 {
