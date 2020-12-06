@@ -3,9 +3,9 @@
 #include <Ultrasonic.h>
 
 
-const char* ssid = "Rostelecom_Inactivated"; //Название сети
-const char* password = "29974978";           //пароль
-const char* mqtt_server = "192.168.1.10";    //ip брокера mqtt
+const char* ssid = "TechHome"; //Название сети
+const char* password = "0123456789";           //пароль
+const char* mqtt_server = "craft-projects.com";    //ip брокера mqtt
 
 #define RELAY_1 5                            //Выход на реле или светодиод
 #define BUTTON_1 4                           //Кнопка
