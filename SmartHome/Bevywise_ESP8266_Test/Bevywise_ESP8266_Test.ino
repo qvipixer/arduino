@@ -1,10 +1,11 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
+String inString = "";    // string to hold input
 
 const char* ssid = "TechHome";
 const char* password = "0123456789";
-const char* mqtt_server = "178.124.145.121";
+const char* mqtt_server = "craft-projects.com";
 
 #define mqtt_user "highlysecure"
 #define mqtt_password "N4xnpPTru43T8Lmk"
@@ -12,20 +13,25 @@ const char* mqtt_server = "178.124.145.121";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
-int RECV_PIN = 2;
 
-void reconnect() 
+int LED_PIN_0 = 2;
+int LED_PIN_1 = 16;
+const int analogInPin = A0;  // ESP8266 Analog Pin ADC0 = A0
+int sensorValue = 0;  // value read from the pot
+
+void reconnect()
 {
-  while (!client.connected()) 
+  while (!client.connected())
   {
     Serial.print("Attempting MQTT connection...");
-    if(client.connect("ESP8266Client",mqtt_user, mqtt_password)) 
+    if (client.connect("ESP8266Client", mqtt_user, mqtt_password))
     {
       Serial.println("connected");
       client.subscribe("ESP8266/LED");
-      client.publish("ESP8266/LED","on");      
-    } 
-    else 
+      client.subscribe("ESP8266/A0");
+      client.publish("ESP8266/LED", "on");
+    }
+    else
     {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -34,11 +40,14 @@ void reconnect()
     }
   }
 }
-void setup() 
+
+void setup()
 {
-  pinMode(RECV_PIN,OUTPUT);
+  pinMode(LED_PIN_0, OUTPUT);
+  pinMode(LED_PIN_1, OUTPUT);
   Serial.begin(115200);
-  digitalWrite(RECV_PIN,HIGH);
+  digitalWrite(LED_PIN_0, HIGH);
+  digitalWrite(LED_PIN_1, HIGH);
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
@@ -51,7 +60,7 @@ void setup_wifi()
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) 
+  while (WiFi.status() != WL_CONNECTED)
   {
     delay(500);
     Serial.print(".");
@@ -61,24 +70,38 @@ void setup_wifi()
   Serial.println(WiFi.localIP());
 }
 
-void callback(char* topic, byte* payload, unsigned int length) 
+void callback(char* topic, byte* payload, unsigned int length)
 {
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
   for (int i = 0; i < length; i++)
-   {
-    Serial.print((char)payload[i]);
-   }
-  if((char)payload[0] == 'o' && (char)payload[1] == 'n')
   {
-    digitalWrite(RECV_PIN,LOW);
-    }
+    Serial.print((char)payload[i]);
   }
-  
-void loop() 
+  if ((char)payload[0] == 'o' && (char)payload[1] == 'n')
+  {
+    digitalWrite(LED_PIN_0, LOW);
+    digitalWrite(LED_PIN_1, LOW);
+
+  }
+  if ((char)payload[0] == 'o' && (char)payload[1] == 'f' && (char)payload[2] == 'f')
+  {
+    digitalWrite(LED_PIN_0, HIGH);
+    digitalWrite(LED_PIN_1, HIGH);
+
+  }
+}
+
+void loop()
 {
-  if (!client.connected()) 
+  sensorValue = analogRead(analogInPin);
+
+
+  client.publish("ESP8266/A0", (char)analogRead(analogInPin));
+  
+
+  if (!client.connected())
   {
     reconnect();
   }
