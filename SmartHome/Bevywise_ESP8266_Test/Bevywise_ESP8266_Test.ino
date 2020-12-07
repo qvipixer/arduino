@@ -19,6 +19,12 @@ int LED_PIN_1 = 16;
 const int analogInPin = A0;  // ESP8266 Analog Pin ADC0 = A0
 int sensorValue = 0;  // value read from the pot
 
+// WithOut delay
+
+unsigned long previousMillis = 0;
+const long interval = 500;
+
+
 void reconnect()
 {
   while (!client.connected())
@@ -101,10 +107,12 @@ void loop()
     reconnect();
   }
   client.loop();
-  int sensorValue; //= analogRead(analogInPin);
 
-  for (int i = 0; i < 1024; i++) {
-    sensorValue = i;
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+
+    int sensorValue = analogRead(analogInPin);
     String msg = "";
     msg = msg + sensorValue;
     char message[58];
@@ -113,5 +121,4 @@ void loop()
     client.publish("ESP8266/A0", message);
   }
 
-  delay(250);
 }
