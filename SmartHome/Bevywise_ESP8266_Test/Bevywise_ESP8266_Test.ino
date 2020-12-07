@@ -28,8 +28,9 @@ void reconnect()
     {
       Serial.println("connected");
       client.subscribe("ESP8266/LED");
-      client.subscribe("ESP8266/A0");
       client.publish("ESP8266/LED", "on");
+      client.subscribe("ESP8266/A0");
+      client.publish("ESP8266/A0", "0");
     }
     else
     {
@@ -95,15 +96,22 @@ void callback(char* topic, byte* payload, unsigned int length)
 
 void loop()
 {
-  sensorValue = analogRead(analogInPin);
 
-
-  client.publish("ESP8266/A0", (char)analogRead(analogInPin));
-  
-
-  if (!client.connected())
-  {
+  if (!client.connected())  {
     reconnect();
   }
   client.loop();
+  int sensorValue; //= analogRead(analogInPin);
+
+  for (int i = 0; i < 1024; i++) {
+    sensorValue = i;
+    String msg = "";
+    msg = msg + sensorValue;
+    char message[58];
+    msg.toCharArray(message, 58);
+    Serial.println(message);
+    client.publish("ESP8266/A0", message);
+  }
+
+  delay(250);
 }
