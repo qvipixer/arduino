@@ -4,7 +4,10 @@
 String inString = "";    // string to hold input
 
 const char* ssid = "TechHome";
+//const char* ssid = "TechSpace";
 const char* password = "0123456789";
+//const char* password = "11111111";
+
 const char* mqtt_server = "craft-projects.com";
 
 #define mqtt_user "highlysecure"
@@ -22,7 +25,7 @@ int sensorValue = 0;  // value read from the pot
 // WithOut delay
 
 unsigned long previousMillis = 0;
-const long interval = 500;
+const long interval = 2000;
 
 
 void reconnect()
