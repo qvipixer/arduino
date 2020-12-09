@@ -1,6 +1,20 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
+//============ MAKROS ===================
+//=========== WithOut delay==============
+//=========== TIMER =====================
+#define EVERY_MS(x) \
+  static uint32_t tmr;\
+  bool flag = millis() - tmr >= (x);\
+  if (flag) tmr += (x);\
+  if (flag)
+//======================================
+
+//======================================
+
+
+
 String inString = "";    // string to hold input
 
 const char* ssid = "TechHome";
@@ -9,6 +23,7 @@ const char* password = "0123456789";
 //const char* password = "11111111";
 
 const char* mqtt_server = "craft-projects.com";
+const char* mqtt_client = "Sergg_ESP";
 
 #define mqtt_user "highlysecure"
 #define mqtt_password "N4xnpPTru43T8Lmk"
@@ -17,29 +32,25 @@ const char* mqtt_server = "craft-projects.com";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-int LED_PIN_0 = 2;
-int LED_PIN_1 = 16;
+const int LED_PIN_0 = 2;
+const int LED_PIN_1 = 16;
+
 const int analogInPin = A0;  // ESP8266 Analog Pin ADC0 = A0
 int sensorValue = 0;  // value read from the pot
-
-// WithOut delay
-
-unsigned long previousMillis = 0;
-const long interval = 2000;
-
 
 void reconnect()
 {
   while (!client.connected())
   {
     Serial.print("Attempting MQTT connection...");
-    if (client.connect("ESP8266Client", mqtt_user, mqtt_password))
+    if (client.connect(mqtt_client, mqtt_user, mqtt_password))
     {
       Serial.println("connected");
       client.subscribe("ESP8266/LED");
-      client.publish("ESP8266/LED", "on");
       client.subscribe("ESP8266/A0");
-      client.publish("ESP8266/A0", "0");
+      client.subscribe("Online");
+      client.publish("ESP8266/LED", "on");
+      client.publish("ESP8266/A0", "-1");
     }
     else
     {
@@ -93,28 +104,25 @@ void callback(char* topic, byte* payload, unsigned int length)
   {
     digitalWrite(LED_PIN_0, LOW);
     digitalWrite(LED_PIN_1, LOW);
-
   }
   if ((char)payload[0] == 'o' && (char)payload[1] == 'f' && (char)payload[2] == 'f')
   {
     digitalWrite(LED_PIN_0, HIGH);
     digitalWrite(LED_PIN_1, HIGH);
-
+  }
+  if ((char)payload[0] == 's' && (char)payload[1] == 'y' && (char)payload[2] == 'n' && (char)payload[3] == 'c') {
+    client.publish("Online", "online");
   }
 }
 
 void loop()
 {
-
   if (!client.connected())  {
     reconnect();
   }
   client.loop();
 
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= interval) {
-    previousMillis = currentMillis;
-
+  EVERY_MS(1000) {
     int sensorValue = analogRead(analogInPin);
     String msg = "";
     msg = msg + sensorValue;
