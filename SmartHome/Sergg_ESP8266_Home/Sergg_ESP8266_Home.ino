@@ -144,10 +144,7 @@ void loop()
   }
   client.loop();
 
-  EVERY_MS(500) {
-
-    // float humidity = dht.getHumidity();
-    // float temperature = dht.getTemperature();
+  EVERY_MS(1000) {
 
     send_message_float("Sergg_ESP8266_Home/Temper_0", dht.getTemperature());
     send_message_float("Sergg_ESP8266_Home/Humidity_0", dht.getHumidity());

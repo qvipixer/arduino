@@ -27,16 +27,22 @@ DallasTemperature sensors(&oneWire);
 
 //=======================================
 
-//=========== Steper=====================
+//=============== Relays=================
+
+const int pin_relay_1 = 4;
+
+//=======================================
+
+//=========== Steper ====================
 
 #include <Stepper.h>
 
-const int stepsPerRevolution = 200;  // change this to fit the number of steps per revolution
+const int stepsPerRevolution = 48;  // change this to fit the number of steps per revolution
 
-const int in_1 = 8; // Driver motor in_1
-const int in_2 = 9; // Driver motor in_2
-const int in_3 = 10; // Driver motor in_3
-const int in_4 = 11; // Driver motor in_4
+const int in_1 = 5; // Driver motor in_1
+const int in_2 = 6; // Driver motor in_2
+const int in_3 = 7; // Driver motor in_3
+const int in_4 = 8; // Driver motor in_4
 
 Stepper myStepper(stepsPerRevolution, in_1, in_2, in_3, in_4);
 
@@ -44,7 +50,7 @@ Stepper myStepper(stepsPerRevolution, in_1, in_2, in_3, in_4);
 
 
 //============ MAKROS ===================
-//=========== WithOut delay==============
+//=========== WithOut delay =============
 //=========== TIMER =====================
 #define EVERY_MS(x) \
   static uint32_t tmr;\
@@ -53,57 +59,132 @@ Stepper myStepper(stepsPerRevolution, in_1, in_2, in_3, in_4);
   if (flag)
 //======================================
 
-//======================================
+// === SEND FLOAT ["NameTopic", float var]=====
+void send_message_float(char* topic, float var) {
+  String msg = "";
+  msg = msg + var;
+  char message[58];
+  msg.toCharArray(message, 58);
+  //  Serial.println(message);
+  client.publish(topic, message);
+}
+//=============================================
+
+// === SEND INT ["NameTopic", int var]=====
+void send_message_int(char* topic, int var) {
+  String msg = "";
+  msg = msg + var;
+  char message[58];
+  msg.toCharArray(message, 58);
+  //  Serial.println(message);
+  client.publish(topic, message);
+}
+//=============================================
+
+//============ Callback =======================
+/*
+   Получение контроллером сообщений
+*/
+void callback(char* topic, byte* payload, unsigned int length)
+{
+  Serial.print("Message arrived [");
+  Serial.print(topic);
+  Serial.print("] ");
+  for (int i = 0; i < length; i++)
+  {
+    Serial.print((char)payload[i]);
+  }
+  if ((char)payload[0] == 's' && (char)payload[1] == 'y' && (char)payload[2] == 'n' && (char)payload[3] == 'c') {
+    client.publish("Sergg_MEGA_2560/Online", "online");
+  }
+  if ((char)payload[0] == 'o' && (char)payload[1] == 'n') {
+    digitalWrite(pin_relay_1, HIGH);
+  }
+  if ((char)payload[0] == 'o' && (char)payload[1] == 'f' && (char)payload[2] == 'f') {
+    digitalWrite(pin_relay_1, LOW);
+  }
+}
+//==============================================
+
+//==============================================
+
 
 void setup() {
+  myStepper.setSpeed(30);
 
   Serial.begin(115200);
-  // put your setup code here, to run once:
+
   sensors.begin();
+
   Ethernet.begin(mac, ip, myDns);
   Serial.println(Ethernet.localIP());
+
   client.setServer(mqtt_server, 1883);
   client.connect(mqtt_client, mqtt_user, mqtt_password);
+  client.setCallback(callback);
 
-  client.subscribe("Sergg_MEGA_2560/LED");
-  client.subscribe("Sergg_MEGA_2560/A0");
   client.subscribe("Sergg_MEGA_2560/Online");
-  client.publish("Sergg_MEGA_2560/Online", "on");
-  client.publish("Sergg_MEGA_2560", "-1");
+
+  client.subscribe("Sergg_MEGA_2560/Relay/0");
+  client.publish("Sergg_MEGA_2560/Relay/0", "off");
+
+  client.publish("Sergg_MEGA_2560/Online", "online");
+  client.publish("Sergg_MEGA_2560/Temper_0", "-1");
+
+  //================= Relay OUT ==================
+
+  pinMode(pin_relay_1, OUTPUT);
+  digitalWrite(pin_relay_1, LOW);
+
+  //==============================================
 
   pinMode(in_1, OUTPUT);
   pinMode(in_2, OUTPUT);
   pinMode(in_3, OUTPUT);
   pinMode(in_4, OUTPUT);
 
-  digitalWrite(in_1, HIGH);
-  digitalWrite(in_2, LOW);
-  digitalWrite(in_3, LOW);
-  digitalWrite(in_4, HIGH);
-
-}
-
-void loop() {
-  sensors.requestTemperatures();
-
-  EVERY_MS(1000) {
-    float tempC = sensors.getTempCByIndex(0);
-    String msg = "";
-    msg = msg + tempC;
-    char message[58];
-    msg.toCharArray(message, 58);
-    Serial.println(message);
-    client.publish("Sergg_MEGA_2560/A0", message);
-
-    digitalWrite(in_1, LOW);
-    digitalWrite(in_2, LOW);
-    digitalWrite(in_3, LOW);
-    digitalWrite(in_4, LOW);
-  }
-
   digitalWrite(in_1, LOW);
   digitalWrite(in_2, LOW);
   digitalWrite(in_3, LOW);
   digitalWrite(in_4, LOW);
+
+}
+
+void loop() {
+
+  // client.loop();
+  sensors.requestTemperatures();
+
+  EVERY_MS(1000) {
+
+    send_message_float("Sergg_MEGA_2560/Temper_0", sensors.getTempCByIndex(0));
+
+    send_message_int("Sergg_MEGA_2560/A0", analogRead(A0));
+    send_message_int("Sergg_MEGA_2560/A1", analogRead(A1));
+    send_message_int("Sergg_MEGA_2560/A2", analogRead(A2));
+    send_message_int("Sergg_MEGA_2560/A3", analogRead(A3));
+    send_message_int("Sergg_MEGA_2560/A4", analogRead(A4));
+    send_message_int("Sergg_MEGA_2560/A5", analogRead(A5));
+    send_message_int("Sergg_MEGA_2560/A6", analogRead(A6));
+    send_message_int("Sergg_MEGA_2560/A7", analogRead(A7));
+
+    send_message_int("Sergg_MEGA_2560/in_1", digitalRead(in_1));
+    send_message_int("Sergg_MEGA_2560/in_2", digitalRead(in_2));
+    send_message_int("Sergg_MEGA_2560/in_3", digitalRead(in_3));
+    send_message_int("Sergg_MEGA_2560/in_4", digitalRead(in_4));
+
+    /*
+        // step one revolution  in one direction:
+        Serial.println("clockwise");
+        myStepper.step(stepsPerRevolution);
+        delay(50);
+
+        // step one revolution in the other direction:
+        Serial.println("counterclockwise");
+        myStepper.step(-stepsPerRevolution);
+        delay(50);
+    */
+  }
+  client.loop();
 
 }
