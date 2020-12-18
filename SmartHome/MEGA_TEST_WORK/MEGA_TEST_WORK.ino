@@ -38,6 +38,7 @@ const int pin_relay_1 = 4;
 #include <Stepper.h>
 
 const int stepsPerRevolution = 48;  // change this to fit the number of steps per revolution
+int stepCount = 0;         // number of steps the motor has taken
 
 const int in_1 = 5; // Driver motor in_1
 const int in_2 = 6; // Driver motor in_2
@@ -103,6 +104,39 @@ void callback(char* topic, byte* payload, unsigned int length)
   if ((char)payload[0] == 'o' && (char)payload[1] == 'f' && (char)payload[2] == 'f') {
     digitalWrite(pin_relay_1, LOW);
   }
+  if ((char)payload[0] == '+') {
+
+    myStepper.step(1);
+    stepCount++;
+
+    send_message_int("Sergg_MEGA_2560/Steper/0/stepCount", stepCount);
+    client.publish("Sergg_MEGA_2560/Steper/0/Cmd", "/");
+  }
+  if ((char)payload[0] == '-') {
+
+    myStepper.step(-1);
+    stepCount--;
+
+    send_message_int("Sergg_MEGA_2560/Steper/0/stepCount", stepCount);
+    client.publish("Sergg_MEGA_2560/Steper/0/Cmd", "/");
+  }
+  if ((char)payload[0] == '/') {
+    digitalWrite(in_1, LOW);
+    digitalWrite(in_2, LOW);
+    digitalWrite(in_3, LOW);
+    digitalWrite(in_4, LOW);
+
+    send_message_int("Sergg_MEGA_2560/Steper/0/stepCount", stepCount);
+  }
+  if ((char)payload[0] == '*') {
+    digitalWrite(in_1, LOW);
+    digitalWrite(in_2, LOW);
+    digitalWrite(in_3, LOW);
+    digitalWrite(in_4, LOW);
+    stepCount = 0;
+    send_message_int("Sergg_MEGA_2560/Steper/0/stepCount", stepCount);
+  }
+
 }
 //==============================================
 
@@ -110,7 +144,7 @@ void callback(char* topic, byte* payload, unsigned int length)
 
 
 void setup() {
-  myStepper.setSpeed(30);
+  myStepper.setSpeed(10);
 
   Serial.begin(115200);
 
@@ -123,13 +157,16 @@ void setup() {
   client.connect(mqtt_client, mqtt_user, mqtt_password);
   client.setCallback(callback);
 
-  client.subscribe("Sergg_MEGA_2560/Online");
+  client.subscribe("Sergg_MEGA_2560/Steper/0/Cmd");
+  client.publish("Sergg_MEGA_2560/Steper/0/Cmd", "*");
 
   client.subscribe("Sergg_MEGA_2560/Relay/0");
   client.publish("Sergg_MEGA_2560/Relay/0", "off");
 
+  client.subscribe("Sergg_MEGA_2560/Online");
   client.publish("Sergg_MEGA_2560/Online", "online");
-  client.publish("Sergg_MEGA_2560/Temper_0", "-1");
+
+  client.publish("Sergg_MEGA_2560/Steper/0/Temper_0", "-1");
 
   //================= Relay OUT ==================
 
@@ -157,7 +194,7 @@ void loop() {
 
   EVERY_MS(1000) {
 
-    send_message_float("Sergg_MEGA_2560/Temper_0", sensors.getTempCByIndex(0));
+    send_message_float("Sergg_MEGA_2560/Steper/0/Temper_0", sensors.getTempCByIndex(0));
 
     send_message_int("Sergg_MEGA_2560/A0", analogRead(A0));
     send_message_int("Sergg_MEGA_2560/A1", analogRead(A1));
@@ -173,17 +210,6 @@ void loop() {
     send_message_int("Sergg_MEGA_2560/in_3", digitalRead(in_3));
     send_message_int("Sergg_MEGA_2560/in_4", digitalRead(in_4));
 
-    /*
-        // step one revolution  in one direction:
-        Serial.println("clockwise");
-        myStepper.step(stepsPerRevolution);
-        delay(50);
-
-        // step one revolution in the other direction:
-        Serial.println("counterclockwise");
-        myStepper.step(-stepsPerRevolution);
-        delay(50);
-    */
   }
   client.loop();
 
