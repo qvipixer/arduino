@@ -96,7 +96,7 @@ void callback(char* topic, byte* payload, unsigned int length)
     Serial.print((char)payload[i]);
   }
   if ((char)payload[0] == 's' && (char)payload[1] == 'y' && (char)payload[2] == 'n' && (char)payload[3] == 'c') {
-    client.publish("Sergg_MEGA_2560/Online", "online");
+    client.publish("Sergg/TechSpace/Plc/MEGA_2560/Online", "online");
   }
   if ((char)payload[0] == 'o' && (char)payload[1] == 'n') {
     digitalWrite(pin_relay_1, HIGH);
@@ -109,32 +109,34 @@ void callback(char* topic, byte* payload, unsigned int length)
     myStepper.step(1);
     stepCount++;
 
-    send_message_int("Sergg_MEGA_2560/Steper/0/stepCount", stepCount);
-    client.publish("Sergg_MEGA_2560/Steper/0/Cmd", "/");
+    send_message_int("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/stepCount", stepCount);
+    //client.publish("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Cmd", "/");
   }
   if ((char)payload[0] == '-') {
 
     myStepper.step(-1);
     stepCount--;
 
-    send_message_int("Sergg_MEGA_2560/Steper/0/stepCount", stepCount);
-    client.publish("Sergg_MEGA_2560/Steper/0/Cmd", "/");
+    send_message_int("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/stepCount", stepCount);
+    //client.publish("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Cmd", "/");
   }
   if ((char)payload[0] == '/') {
+    delay(1000);
     digitalWrite(in_1, LOW);
     digitalWrite(in_2, LOW);
     digitalWrite(in_3, LOW);
     digitalWrite(in_4, LOW);
 
-    send_message_int("Sergg_MEGA_2560/Steper/0/stepCount", stepCount);
+    send_message_int("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/stepCount", stepCount);
   }
   if ((char)payload[0] == '*') {
+    delay(1000);
     digitalWrite(in_1, LOW);
     digitalWrite(in_2, LOW);
     digitalWrite(in_3, LOW);
     digitalWrite(in_4, LOW);
     stepCount = 0;
-    send_message_int("Sergg_MEGA_2560/Steper/0/stepCount", stepCount);
+    send_message_int("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/stepCount", stepCount);
   }
 
 }
@@ -157,16 +159,16 @@ void setup() {
   client.connect(mqtt_client, mqtt_user, mqtt_password);
   client.setCallback(callback);
 
-  client.subscribe("Sergg_MEGA_2560/Steper/0/Cmd");
-  client.publish("Sergg_MEGA_2560/Steper/0/Cmd", "*");
+  client.subscribe("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Cmd");
+  client.publish("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Cmd", "*");
 
-  client.subscribe("Sergg_MEGA_2560/Relay/0");
-  client.publish("Sergg_MEGA_2560/Relay/0", "off");
+  client.subscribe("Sergg/TechSpace/Plc/MEGA_2560/Relay/0");
+  client.publish("Sergg/TechSpace/Plc/MEGA_2560/Relay/0", "off");
 
-  client.subscribe("Sergg_MEGA_2560/Online");
-  client.publish("Sergg_MEGA_2560/Online", "online");
+  client.subscribe("Sergg/TechSpace/Plc/MEGA_2560/Online");
+  client.publish("Sergg/TechSpace/Plc/MEGA_2560/Online", "online");
 
-  client.publish("Sergg_MEGA_2560/Steper/0/Temper_0", "-1");
+  client.publish("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Temper_0", "-1");
 
   //================= Relay OUT ==================
 
@@ -194,21 +196,21 @@ void loop() {
 
   EVERY_MS(1000) {
 
-    send_message_float("Sergg_MEGA_2560/Steper/0/Temper_0", sensors.getTempCByIndex(0));
+    send_message_float("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Temper_0", sensors.getTempCByIndex(0));
 
-    send_message_int("Sergg_MEGA_2560/A0", analogRead(A0));
-    send_message_int("Sergg_MEGA_2560/A1", analogRead(A1));
-    send_message_int("Sergg_MEGA_2560/A2", analogRead(A2));
-    send_message_int("Sergg_MEGA_2560/A3", analogRead(A3));
-    send_message_int("Sergg_MEGA_2560/A4", analogRead(A4));
-    send_message_int("Sergg_MEGA_2560/A5", analogRead(A5));
-    send_message_int("Sergg_MEGA_2560/A6", analogRead(A6));
-    send_message_int("Sergg_MEGA_2560/A7", analogRead(A7));
+    send_message_int("Sergg/TechSpace/Plc/MEGA_2560/A0", analogRead(A0));
+    send_message_int("Sergg/TechSpace/Plc/MEGA_2560/A1", analogRead(A1));
+    send_message_int("Sergg/TechSpace/Plc/MEGA_2560/A2", analogRead(A2));
+    send_message_int("Sergg/TechSpace/Plc/MEGA_2560/A3", analogRead(A3));
+    send_message_int("Sergg/TechSpace/Plc/MEGA_2560/A4", analogRead(A4));
+    send_message_int("Sergg/TechSpace/Plc/MEGA_2560/A5", analogRead(A5));
+    send_message_int("Sergg/TechSpace/Plc/MEGA_2560/A6", analogRead(A6));
+    send_message_int("Sergg/TechSpace/Plc/MEGA_2560/A7", analogRead(A7));
 
-    send_message_int("Sergg_MEGA_2560/in_1", digitalRead(in_1));
-    send_message_int("Sergg_MEGA_2560/in_2", digitalRead(in_2));
-    send_message_int("Sergg_MEGA_2560/in_3", digitalRead(in_3));
-    send_message_int("Sergg_MEGA_2560/in_4", digitalRead(in_4));
+    send_message_int("Sergg/TechSpace/Plc/MEGA_2560/in_1", digitalRead(in_1));
+    send_message_int("Sergg/TechSpace/Plc/MEGA_2560/in_2", digitalRead(in_2));
+    send_message_int("Sergg/TechSpace/Plc/MEGA_2560/in_3", digitalRead(in_3));
+    send_message_int("Sergg/TechSpace/Plc/MEGA_2560/in_4", digitalRead(in_4));
 
   }
   client.loop();
