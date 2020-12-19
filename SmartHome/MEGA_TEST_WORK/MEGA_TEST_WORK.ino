@@ -146,8 +146,26 @@ void callback(char* topic, byte* payload, unsigned int length)
 
 
 void setup() {
-  myStepper.setSpeed(10);
+  //================= Relay OUT ==================
 
+  pinMode(pin_relay_1, OUTPUT);
+  digitalWrite(pin_relay_1, LOW);
+
+  //==============================================
+
+  //=============== Stepper OUT ==================
+  pinMode(in_1, OUTPUT);
+  pinMode(in_2, OUTPUT);
+  pinMode(in_3, OUTPUT);
+  pinMode(in_4, OUTPUT);
+
+  digitalWrite(in_1, LOW);
+  digitalWrite(in_2, LOW);
+  digitalWrite(in_3, LOW);
+  digitalWrite(in_4, LOW);
+
+  myStepper.setSpeed(10);
+  //==============================================
   Serial.begin(115200);
 
   sensors.begin();
@@ -169,24 +187,6 @@ void setup() {
   client.publish("Sergg/TechSpace/Plc/MEGA_2560/Online", "online");
 
   client.publish("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Temper_0", "-1");
-
-  //================= Relay OUT ==================
-
-  pinMode(pin_relay_1, OUTPUT);
-  digitalWrite(pin_relay_1, LOW);
-
-  //==============================================
-
-  pinMode(in_1, OUTPUT);
-  pinMode(in_2, OUTPUT);
-  pinMode(in_3, OUTPUT);
-  pinMode(in_4, OUTPUT);
-
-  digitalWrite(in_1, LOW);
-  digitalWrite(in_2, LOW);
-  digitalWrite(in_3, LOW);
-  digitalWrite(in_4, LOW);
-
 }
 
 void loop() {
@@ -212,6 +212,11 @@ void loop() {
     send_message_int("Sergg/TechSpace/Plc/MEGA_2560/in_3", digitalRead(in_3));
     send_message_int("Sergg/TechSpace/Plc/MEGA_2560/in_4", digitalRead(in_4));
 
+    if (sensors.getTempCByIndex(0) > 55.0) {
+      digitalWrite(pin_relay_1, LOW);
+    } else {
+      digitalWrite(pin_relay_1, HIGH);
+    }
   }
   client.loop();
 

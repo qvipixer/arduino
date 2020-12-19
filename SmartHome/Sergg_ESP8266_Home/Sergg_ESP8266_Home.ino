@@ -13,7 +13,7 @@ const char* password = "0123456789";
 //const char* password = "11111111";
 
 const char* mqtt_server = "craft-projects.com";
-const char* mqtt_client = "Sergg_ESP8266_Home";
+const char* mqtt_client = "Sergg/TechHome/Plc/ESP8266";
 
 #define mqtt_user "highlysecure"
 #define mqtt_password "N4xnpPTru43T8Lmk"
@@ -68,9 +68,11 @@ void reconnect()
     if (client.connect(mqtt_client, mqtt_user, mqtt_password))
     {
       Serial.println("connected");
-      client.subscribe("Sergg_ESP8266_Home/LED");
-      client.subscribe("Sergg_ESP8266_Home/Online");
-      client.publish("Sergg_ESP8266_Home/LED", "on");
+
+      
+      client.subscribe("Sergg/TechHome/Plc/ESP8266/LED");
+      client.subscribe("Sergg/TechHome/Plc/ESP8266/Online");
+      client.publish("Sergg/TechHome/Plc/ESP8266/LED", "on");
     }
     else
     {
@@ -133,7 +135,7 @@ void callback(char* topic, byte* payload, unsigned int length)
     digitalWrite(LED_PIN_1, HIGH);
   }
   if ((char)payload[0] == 's' && (char)payload[1] == 'y' && (char)payload[2] == 'n' && (char)payload[3] == 'c') {
-    client.publish("Sergg_ESP8266_Home/Online", "online");
+    client.publish("Sergg/TechHome/Plc/ESP8266/Online", "online");
   }
 }
 
@@ -146,9 +148,9 @@ void loop()
 
   EVERY_MS(1000) {
 
-    send_message_float("Sergg_ESP8266_Home/Temper_0", dht.getTemperature());
-    send_message_float("Sergg_ESP8266_Home/Humidity_0", dht.getHumidity());
+    send_message_float("Sergg/TechHome/Plc/ESP8266/Temper_0", dht.getTemperature());
+    send_message_float("Sergg/TechHome/Plc/ESP8266/Humidity_0", dht.getHumidity());
 
-    send_message_int("Sergg_ESP8266_Home/A0_Flower", analogRead(analogInPin));
+    send_message_int("Sergg/TechHome/Plc/ESP8266/A0_Flower", analogRead(analogInPin));
   }
 }
