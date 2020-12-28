@@ -7,10 +7,10 @@ DHTesp dht;
 
 String inString = "";    // string to hold input
 
-const char* ssid = "TechHome";
-//const char* ssid = "TechSpace";
-const char* password = "0123456789";
-//const char* password = "11111111";
+//const char* ssid = "TechHome";
+const char* ssid = "TechSpace";
+//const char* password = "0123456789";
+const char* password = "craft-projects.com";
 
 const char* mqtt_server = "craft-projects.com";
 const char* mqtt_client = "Sergg/TechHome/Plc/ESP8266";
