@@ -1,3 +1,7 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27, 16, 2); // set the LCD address to 0x27 for a 16 chars and 2 line display
+
 #include <SPI.h>
 #include <Ethernet.h>
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
@@ -14,7 +18,6 @@ const char* mqtt_client = "Sergg_MEGA";
 
 #define mqtt_user "highlysecure"
 #define mqtt_password "N4xnpPTru43T8Lmk"
-
 
 //========= Temper ======================
 
@@ -48,7 +51,6 @@ const int in_4 = 8; // Driver motor in_4
 Stepper myStepper(stepsPerRevolution, in_1, in_2, in_3, in_4);
 
 //=======================================
-
 
 //============ MAKROS ===================
 //=========== WithOut delay =============
@@ -86,8 +88,7 @@ void send_message_int(char* topic, int var) {
 /*
    Получение контроллером сообщений
 */
-void callback(char* topic, byte* payload, unsigned int length)
-{
+void callback(char* topic, byte* payload, unsigned int length){
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
@@ -135,6 +136,9 @@ void callback(char* topic, byte* payload, unsigned int length)
     digitalWrite(in_2, LOW);
     digitalWrite(in_3, LOW);
     digitalWrite(in_4, LOW);
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("*");
     stepCount = 0;
     send_message_int("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/stepCount", stepCount);
   }
@@ -144,8 +148,18 @@ void callback(char* topic, byte* payload, unsigned int length)
 
 //==============================================
 
-
 void setup() {
+
+  //================= LCD ========================
+
+  lcd.init();                      // initialize the lcd
+  // Print a message to the LCD.
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("Hello, world!");
+
+  //================= LCD ========================
+
   //================= Relay OUT ==================
 
   pinMode(pin_relay_1, OUTPUT);
@@ -195,6 +209,9 @@ void loop() {
   sensors.requestTemperatures();
 
   EVERY_MS(1000) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print(sensors.getTempCByIndex(0));
 
     send_message_float("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Temper_0", sensors.getTempCByIndex(0));
 
@@ -219,5 +236,4 @@ void loop() {
     }
   }
   client.loop();
-
 }
