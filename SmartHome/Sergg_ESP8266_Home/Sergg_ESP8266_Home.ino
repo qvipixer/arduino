@@ -7,10 +7,10 @@ DHTesp dht;
 
 String inString = "";    // string to hold input
 
-//const char* ssid = "TechHome";
-const char* ssid = "TechSpace";
-//const char* password = "0123456789";
-const char* password = "craft-projects.com";
+const char* ssid = "TechHome";
+//const char* ssid = "TechSpace";
+const char* password = "0123456789";
+//const char* password = "craft-projects.com";
 
 const char* mqtt_server = "craft-projects.com";
 const char* mqtt_client = "Sergg/TechHome/Plc/ESP8266";
@@ -69,7 +69,7 @@ void reconnect()
     {
       Serial.println("connected");
 
-      
+
       client.subscribe("Sergg/TechHome/Plc/ESP8266/LED");
       client.subscribe("Sergg/TechHome/Plc/ESP8266/Online");
       client.publish("Sergg/TechHome/Plc/ESP8266/LED", "on");
@@ -86,8 +86,8 @@ void reconnect()
 
 void setup()
 {
-  dht.setup(DHTpin, DHTesp::DHT11); //for DHT11 Connect DHT sensor to GPIO 
-  
+  dht.setup(DHTpin, DHTesp::DHT11); //for DHT11 Connect DHT sensor to GPIO
+
   pinMode(LED_PIN_0, OUTPUT);
   pinMode(LED_PIN_1, OUTPUT);
   Serial.begin(115200);
