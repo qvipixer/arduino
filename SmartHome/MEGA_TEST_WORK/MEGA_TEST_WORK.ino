@@ -32,6 +32,7 @@ DallasTemperature sensors(&oneWire);
 
 //=============== Relays=================
 
+const int pin_relay_0 = 3;
 const int pin_relay_1 = 4;
 
 //=======================================
@@ -88,7 +89,7 @@ void send_message_int(char* topic, int var) {
 /*
    Получение контроллером сообщений
 */
-void callback(char* topic, byte* payload, unsigned int length){
+void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
@@ -99,12 +100,19 @@ void callback(char* topic, byte* payload, unsigned int length){
   if ((char)payload[0] == 's' && (char)payload[1] == 'y' && (char)payload[2] == 'n' && (char)payload[3] == 'c') {
     client.publish("Sergg/TechSpace/Plc/MEGA_2560/Online", "online");
   }
-  if ((char)payload[0] == 'o' && (char)payload[1] == 'n') {
-    digitalWrite(pin_relay_1, HIGH);
+  if ((char)payload[0] == 'r' && (char)payload[1] == '0' && (char)payload[2] == 'o' && (char)payload[3] == 'n') {
+    digitalWrite(pin_relay_0, HIGH);
   }
-  if ((char)payload[0] == 'o' && (char)payload[1] == 'f' && (char)payload[2] == 'f') {
+  if ((char)payload[0] == 'r' && (char)payload[1] == '0' && (char)payload[2] == 'o' && (char)payload[3] == 'f' && (char)payload[4] == 'f') {
+    digitalWrite(pin_relay_0, LOW);
+  }
+  if ((char)payload[0] == 'r' && (char)payload[1] == '1' && (char)payload[2] == 'o' && (char)payload[3] == 'n') {
     digitalWrite(pin_relay_1, LOW);
   }
+  if ((char)payload[0] == 'r' && (char)payload[1] == '1' && (char)payload[2] == 'o' && (char)payload[3] == 'f' && (char)payload[4] == 'f') {
+    digitalWrite(pin_relay_1, HIGH);
+  }
+
   if ((char)payload[0] == '+') {
 
     myStepper.step(1);
@@ -162,6 +170,8 @@ void setup() {
 
   //================= Relay OUT ==================
 
+  pinMode(pin_relay_0, OUTPUT);
+  digitalWrite(pin_relay_0, HIGH);
   pinMode(pin_relay_1, OUTPUT);
   digitalWrite(pin_relay_1, LOW);
 
@@ -195,10 +205,12 @@ void setup() {
   client.publish("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Cmd", "*");
 
   client.subscribe("Sergg/TechSpace/Plc/MEGA_2560/Relay/0");
-  client.publish("Sergg/TechSpace/Plc/MEGA_2560/Relay/0", "off");
+  client.subscribe("Sergg/TechSpace/Plc/MEGA_2560/Relay/1");
+  client.publish("Sergg/TechSpace/Plc/MEGA_2560/Relay/0", "r0on");
+  client.publish("Sergg/TechSpace/Plc/MEGA_2560/Relay/1", "r1on");
 
   client.subscribe("Sergg/TechSpace/Plc/MEGA_2560/Online");
-  client.publish("Sergg/TechSpace/Plc/MEGA_2560/Online", "online");
+  client.publish("Sergg/TechSpace/Plc/MEGA_2560/Status", "online");
 
   client.publish("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Temper_0", "-1");
 }

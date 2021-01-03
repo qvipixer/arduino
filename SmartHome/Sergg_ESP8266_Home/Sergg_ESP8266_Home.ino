@@ -60,22 +60,17 @@ void send_message_int(char* topic, int var) {
 }
 //=============================================
 
-void reconnect()
-{
-  while (!client.connected())
-  {
+void reconnect() {
+  while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
-    if (client.connect(mqtt_client, mqtt_user, mqtt_password))
-    {
+    if (client.connect(mqtt_client, mqtt_user, mqtt_password)) {
       Serial.println("connected");
-
 
       client.subscribe("Sergg/TechHome/Plc/ESP8266/LED");
       client.subscribe("Sergg/TechHome/Plc/ESP8266/Online");
       client.publish("Sergg/TechHome/Plc/ESP8266/LED", "on");
     }
-    else
-    {
+    else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
       Serial.println(" try again in 5 seconds");
@@ -84,8 +79,7 @@ void reconnect()
   }
 }
 
-void setup()
-{
+void setup() {
   dht.setup(DHTpin, DHTesp::DHT11); //for DHT11 Connect DHT sensor to GPIO
 
   pinMode(LED_PIN_0, OUTPUT);
@@ -99,14 +93,12 @@ void setup()
   reconnect();
 }
 
-void setup_wifi()
-{
+void setup_wifi() {
   delay(10);
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED)
-  {
+  while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
@@ -115,22 +107,18 @@ void setup_wifi()
   Serial.println(WiFi.localIP());
 }
 
-void callback(char* topic, byte* payload, unsigned int length)
-{
+void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
-  for (int i = 0; i < length; i++)
-  {
+  for (int i = 0; i < length; i++) {
     Serial.print((char)payload[i]);
   }
-  if ((char)payload[0] == 'o' && (char)payload[1] == 'n')
-  {
+  if ((char)payload[0] == 'o' && (char)payload[1] == 'n') {
     digitalWrite(LED_PIN_0, LOW);
     digitalWrite(LED_PIN_1, LOW);
   }
-  if ((char)payload[0] == 'o' && (char)payload[1] == 'f' && (char)payload[2] == 'f')
-  {
+  if ((char)payload[0] == 'o' && (char)payload[1] == 'f' && (char)payload[2] == 'f') {
     digitalWrite(LED_PIN_0, HIGH);
     digitalWrite(LED_PIN_1, HIGH);
   }
@@ -141,7 +129,7 @@ void callback(char* topic, byte* payload, unsigned int length)
 
 void loop()
 {
-  if (!client.connected())  {
+  if (!client.connected()) {
     reconnect();
   }
   client.loop();
