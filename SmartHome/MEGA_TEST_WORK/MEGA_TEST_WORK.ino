@@ -90,15 +90,14 @@ void send_message_int(char* topic, int var) {
    Получение контроллером сообщений
 */
 void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
+  Serial.print("\nMessage arrived [");
   Serial.print(topic);
   Serial.print("] ");
-  for (int i = 0; i < length; i++)
-  {
+  for (int i = 0; i < length; i++) {
     Serial.print((char)payload[i]);
   }
   if ((char)payload[0] == 's' && (char)payload[1] == 'y' && (char)payload[2] == 'n' && (char)payload[3] == 'c') {
-    client.publish("Sergg/TechSpace/Plc/MEGA_2560/Online", "online");
+    client.publish("Sergg/TechSpace/Plc/MEGA_2560/Status", "online");
   }
   if ((char)payload[0] == 'r' && (char)payload[1] == '0' && (char)payload[2] == 'o' && (char)payload[3] == 'n') {
     digitalWrite(pin_relay_0, HIGH);
@@ -112,6 +111,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if ((char)payload[0] == 'r' && (char)payload[1] == '1' && (char)payload[2] == 'o' && (char)payload[3] == 'f' && (char)payload[4] == 'f') {
     digitalWrite(pin_relay_1, HIGH);
   }
+  if (topic == "Sergg/TechSpace/Plc/MEGA_2560/Relay/2") {
+    
+    lcd.setCursor(0, 1);
+    lcd.print(payload[0]);
+    Serial.println(payload[0]);
+  }
+
+
 
   if ((char)payload[0] == '+') {
 
@@ -129,6 +136,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     send_message_int("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/stepCount", stepCount);
     //client.publish("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Cmd", "/");
   }
+
   if ((char)payload[0] == '/') {
     delay(1000);
     digitalWrite(in_1, LOW);
@@ -138,15 +146,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
     send_message_int("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/stepCount", stepCount);
   }
+
   if ((char)payload[0] == '*') {
     delay(1000);
     digitalWrite(in_1, LOW);
     digitalWrite(in_2, LOW);
     digitalWrite(in_3, LOW);
     digitalWrite(in_4, LOW);
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("*");
+
     stepCount = 0;
     send_message_int("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/stepCount", stepCount);
   }
@@ -201,15 +208,18 @@ void setup() {
   client.connect(mqtt_client, mqtt_user, mqtt_password);
   client.setCallback(callback);
 
+  client.subscribe("Sergg/TechSpace/Plc/MEGA_2560/Relay/2");
+
   client.subscribe("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Cmd");
   client.publish("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Cmd", "*");
 
   client.subscribe("Sergg/TechSpace/Plc/MEGA_2560/Relay/0");
   client.subscribe("Sergg/TechSpace/Plc/MEGA_2560/Relay/1");
+
   client.publish("Sergg/TechSpace/Plc/MEGA_2560/Relay/0", "r0on");
   client.publish("Sergg/TechSpace/Plc/MEGA_2560/Relay/1", "r1on");
 
-  client.subscribe("Sergg/TechSpace/Plc/MEGA_2560/Online");
+  client.subscribe("Sergg/TechSpace/Plc/MEGA_2560/Status");
   client.publish("Sergg/TechSpace/Plc/MEGA_2560/Status", "online");
 
   client.publish("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Temper_0", "-1");
@@ -224,6 +234,8 @@ void loop() {
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print(sensors.getTempCByIndex(0));
+    lcd.setCursor(0, 1);
+    lcd.print(Ethernet.localIP());
 
     send_message_float("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Temper_0", sensors.getTempCByIndex(0));
 

@@ -1,6 +1,16 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 //============ LCD ===================
+/*
+  // ESP8266 with 16x2 i2c LCD
+  // Compatible with the Arduino IDE 1.6.6
+  // Library https://github.com/agnunez/ESP8266-I2C-LCD1602
+  // Original Library https://github.com/fdebrabander/Arduino-LiquidCrystal-I2C-library
+  // Modified for ESP8266 with GPIO0-SDA GPIO2-SCL and LCD1206 display
+  // edit library and change Wire.begin() by Wire.begin(sda,scl) or other GPIO's used for I2C
+  // and access from lcd.begin(sda,scl)
+*/
+
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
 LiquidCrystal_I2C lcd(0x27, 16, 2); // Check I2C address of LCD, normally 0x27 or 0x3F
@@ -53,7 +63,7 @@ void send_message_float(char* topic, float var) {
 }
 //=============================================
 
-// === SEND INT ["NameTopic", int var]=====
+// === SEND INT ["NameTopic", int var]========
 void send_message_int(char* topic, int var) {
   String msg = "";
   msg = msg + var;
@@ -69,6 +79,8 @@ void reconnect() {
     Serial.print("Attempting MQTT connection...");
     if (client.connect(mqtt_client, mqtt_user, mqtt_password)) {
       Serial.println("connected");
+
+      client.subscribe("Sergg/TechSpace/Plc/MEGA_2560/Relay/2");
 
       client.subscribe("Sergg/TechSpace/Plc/ESP8266/LED");
       client.subscribe("Sergg/TechSpace/Plc/ESP8266/Online");
@@ -88,19 +100,12 @@ void setup() {
   lcd.begin(4, 5);     // In ESP8266-01, SDA=4 GPIO, SCL=5 GPIO
   lcd.backlight();
 
-
   lcd.home();                // At column=0, row=0
   lcd.print("ESP8266");
   lcd.setCursor(0, 1);
   lcd.print("LiquidCrystalI2C");
-  delay(500);
-  lcd.setCursor(10, 0);      // At column=10, row=0
-  delay(500);
-  lcd.setCursor(10, 0);      // At column=10, row=0
-  lcd.print(" ");            // Wipe sprite
 
   //=============================================
-
 
   dht.setup(DHTpin, DHTesp::DHT11); //for DHT11 Connect DHT sensor to GPIO
 
@@ -130,7 +135,7 @@ void setup_wifi() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
+  Serial.print("\nMessage arrived [");
   Serial.print(topic);
   Serial.print("] ");
   for (int i = 0; i < length; i++) {
@@ -147,6 +152,18 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if ((char)payload[0] == 's' && (char)payload[1] == 'y' && (char)payload[2] == 'n' && (char)payload[3] == 'c') {
     client.publish("Sergg/TechSpace/Plc/ESP8266/Online", "online");
   }
+  lcd.clear();
+  lcd.home();                // At column=0, row=0
+  lcd.print(payload[0]);
+  /*
+    if (topic == "Sergg/TechSpace/Plc/MEGA_2560/Relay/2") {
+      lcd.clear();
+      lcd.home();                // At column=0, row=0
+      lcd.setCursor(0, 1);
+      lcd.print(WiFi.localIP());
+      Serial.println("444");
+    }
+  */
 }
 
 void loop()
@@ -154,7 +171,6 @@ void loop()
   if (!client.connected()) {
     reconnect();
   }
-  client.loop();
 
   EVERY_MS(1000) {
 
@@ -163,4 +179,8 @@ void loop()
 
     send_message_int("Sergg/TechSpace/Plc/ESP8266/A0_Flower", analogRead(analogInPin));
   }
+
+  client.loop();
+
+
 }
