@@ -1,6 +1,10 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
-
+//============ LCD ===================
+#include <LiquidCrystal_I2C.h>
+#include <Wire.h>
+LiquidCrystal_I2C lcd(0x27, 16, 2); // Check I2C address of LCD, normally 0x27 or 0x3F
+//=============================================
 #include "DHTesp.h"
 #define DHTpin 14    //D5 of NodeMCU is GPIO14
 DHTesp dht;
@@ -13,7 +17,7 @@ const char* password = "0123456789";
 //const char* password = "craft-projects.com";
 
 const char* mqtt_server = "craft-projects.com";
-const char* mqtt_client = "Sergg/TechHome/Plc/ESP8266";
+const char* mqtt_client = "Sergg/TechSpace/Plc/ESP8266";
 
 #define mqtt_user "highlysecure"
 #define mqtt_password "N4xnpPTru43T8Lmk"
@@ -36,7 +40,7 @@ int sensorValue = 0;  // value read from the pot
   bool flag = millis() - tmr >= (x);\
   if (flag) tmr += (x);\
   if (flag)
-//======================================
+//=============================================
 
 // === SEND FLOAT ["NameTopic", float var]=====
 void send_message_float(char* topic, float var) {
@@ -66,9 +70,9 @@ void reconnect() {
     if (client.connect(mqtt_client, mqtt_user, mqtt_password)) {
       Serial.println("connected");
 
-      client.subscribe("Sergg/TechHome/Plc/ESP8266/LED");
-      client.subscribe("Sergg/TechHome/Plc/ESP8266/Online");
-      client.publish("Sergg/TechHome/Plc/ESP8266/LED", "on");
+      client.subscribe("Sergg/TechSpace/Plc/ESP8266/LED");
+      client.subscribe("Sergg/TechSpace/Plc/ESP8266/Online");
+      client.publish("Sergg/TechSpace/Plc/ESP8266/LED", "on");
     }
     else {
       Serial.print("failed, rc=");
@@ -80,6 +84,24 @@ void reconnect() {
 }
 
 void setup() {
+  // ======= LCD ==============
+  lcd.begin(4, 5);     // In ESP8266-01, SDA=4 GPIO, SCL=5 GPIO
+  lcd.backlight();
+
+
+  lcd.home();                // At column=0, row=0
+  lcd.print("ESP8266");
+  lcd.setCursor(0, 1);
+  lcd.print("LiquidCrystalI2C");
+  delay(500);
+  lcd.setCursor(10, 0);      // At column=10, row=0
+  delay(500);
+  lcd.setCursor(10, 0);      // At column=10, row=0
+  lcd.print(" ");            // Wipe sprite
+
+  //=============================================
+
+
   dht.setup(DHTpin, DHTesp::DHT11); //for DHT11 Connect DHT sensor to GPIO
 
   pinMode(LED_PIN_0, OUTPUT);
@@ -123,7 +145,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     digitalWrite(LED_PIN_1, HIGH);
   }
   if ((char)payload[0] == 's' && (char)payload[1] == 'y' && (char)payload[2] == 'n' && (char)payload[3] == 'c') {
-    client.publish("Sergg/TechHome/Plc/ESP8266/Online", "online");
+    client.publish("Sergg/TechSpace/Plc/ESP8266/Online", "online");
   }
 }
 
@@ -136,9 +158,9 @@ void loop()
 
   EVERY_MS(1000) {
 
-    send_message_float("Sergg/TechHome/Plc/ESP8266/Temper_0", dht.getTemperature());
-    send_message_float("Sergg/TechHome/Plc/ESP8266/Humidity_0", dht.getHumidity());
+    send_message_float("Sergg/TechSpace/Plc/ESP8266/Temper_0", dht.getTemperature());
+    send_message_float("Sergg/TechSpace/Plc/ESP8266/Humidity_0", dht.getHumidity());
 
-    send_message_int("Sergg/TechHome/Plc/ESP8266/A0_Flower", analogRead(analogInPin));
+    send_message_int("Sergg/TechSpace/Plc/ESP8266/A0_Flower", analogRead(analogInPin));
   }
 }
