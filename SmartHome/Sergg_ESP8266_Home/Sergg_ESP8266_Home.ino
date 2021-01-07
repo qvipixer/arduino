@@ -80,10 +80,10 @@ void reconnect() {
     if (client.connect(mqtt_client, mqtt_user, mqtt_password)) {
       Serial.println("connected");
 
-      client.subscribe("Sergg/TechSpace/Plc/MEGA_2560/Relay/2");
+      client.subscribe("Sergg/TechSpace/Plc/ESP8266/LCD");
 
       client.subscribe("Sergg/TechSpace/Plc/ESP8266/LED");
-      client.subscribe("Sergg/TechSpace/Plc/ESP8266/Online");
+      client.subscribe("Sergg/TechSpace/Plc/ESP8266/Status");
       client.publish("Sergg/TechSpace/Plc/ESP8266/LED", "on");
     }
     else {
@@ -150,11 +150,25 @@ void callback(char* topic, byte* payload, unsigned int length) {
     digitalWrite(LED_PIN_1, HIGH);
   }
   if ((char)payload[0] == 's' && (char)payload[1] == 'y' && (char)payload[2] == 'n' && (char)payload[3] == 'c') {
-    client.publish("Sergg/TechSpace/Plc/ESP8266/Online", "online");
+    client.publish("Sergg/TechSpace/Plc/ESP8266/Status", "online");
   }
-  lcd.clear();
-  lcd.home();                // At column=0, row=0
-  lcd.print(payload[0]);
+  if ((char)payload[0] == 'm' && (char)payload[1] == 's' && (char)payload[2] == 'g') {
+    lcd.clear();
+    lcd.home();                // At column=0, row=0
+
+    for (int i = 3; i < 19; i++) {
+      lcd.setCursor(i-3, 0);
+      lcd.print((char)payload[i]);
+      Serial.print((char)payload[i]);
+    }
+    for (int i = 19; i < 35; i++) {
+      lcd.setCursor(i - 19, 1);
+      lcd.print((char)payload[i]);
+      Serial.print((char)payload[i]);
+    }
+  }
+
+
   /*
     if (topic == "Sergg/TechSpace/Plc/MEGA_2560/Relay/2") {
       lcd.clear();
