@@ -111,14 +111,21 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if ((char)payload[0] == 'r' && (char)payload[1] == '1' && (char)payload[2] == 'o' && (char)payload[3] == 'f' && (char)payload[4] == 'f') {
     digitalWrite(pin_relay_1, HIGH);
   }
-  if (topic == "Sergg/TechSpace/Plc/MEGA_2560/Relay/2") {
-    
-    lcd.setCursor(0, 1);
-    lcd.print(payload[0]);
-    Serial.println(payload[0]);
+
+  if ((char)payload[0] == 'm' && (char)payload[1] == 's' && (char)payload[2] == 'g') {
+    lcd.clear();
+
+    for (int i = 3; i < 19; i++) {
+      lcd.setCursor(i - 3, 0);
+      lcd.print((char)payload[i]);
+      //Serial.print((char)payload[i]);
+    }
+    for (int i = 19; i < 35; i++) {
+      lcd.setCursor(i - 19, 1);
+      lcd.print((char)payload[i]);
+      //Serial.print((char)payload[i]);
+    }
   }
-
-
 
   if ((char)payload[0] == '+') {
 
@@ -165,16 +172,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 void setup() {
 
-  //================= LCD ========================
-
-  lcd.init();                      // initialize the lcd
-  // Print a message to the LCD.
-  lcd.backlight();
-  lcd.setCursor(0, 0);
-  lcd.print("Hello, world!");
-
-  //================= LCD ========================
-
   //================= Relay OUT ==================
 
   pinMode(pin_relay_0, OUTPUT);
@@ -208,6 +205,8 @@ void setup() {
   client.connect(mqtt_client, mqtt_user, mqtt_password);
   client.setCallback(callback);
 
+  client.subscribe("Sergg/TechSpace/Plc/MEGA_2560/LCD");
+
   client.subscribe("Sergg/TechSpace/Plc/MEGA_2560/Relay/2");
 
   client.subscribe("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Cmd");
@@ -223,6 +222,23 @@ void setup() {
   client.publish("Sergg/TechSpace/Plc/MEGA_2560/Status", "online");
 
   client.publish("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Temper_0", "-1");
+
+  //================= LCD ========================
+
+  lcd.init();                      // initialize the lcd
+  // Print a message to the LCD.
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("Hello, world!");
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(sensors.getTempCByIndex(0));
+  lcd.setCursor(0, 1);
+  lcd.print(Ethernet.localIP());
+
+
+  //================= LCD ========================
 }
 
 void loop() {
@@ -231,12 +247,6 @@ void loop() {
   sensors.requestTemperatures();
 
   EVERY_MS(1000) {
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print(sensors.getTempCByIndex(0));
-    lcd.setCursor(0, 1);
-    lcd.print(Ethernet.localIP());
-
     send_message_float("Sergg/TechSpace/Plc/MEGA_2560/Steper/0/Temper_0", sensors.getTempCByIndex(0));
 
     send_message_int("Sergg/TechSpace/Plc/MEGA_2560/A0", analogRead(A0));
@@ -253,7 +263,7 @@ void loop() {
     send_message_int("Sergg/TechSpace/Plc/MEGA_2560/in_3", digitalRead(in_3));
     send_message_int("Sergg/TechSpace/Plc/MEGA_2560/in_4", digitalRead(in_4));
 
-    if (sensors.getTempCByIndex(0) > 55.0) {
+    if (sensors.getTempCByIndex(0) > 50.0) {
       digitalWrite(pin_relay_1, LOW);
     } else {
       digitalWrite(pin_relay_1, HIGH);
