@@ -29,9 +29,11 @@ const char* password = "0123456789";
 const char* mqtt_server = "craft-projects.com";
 const char* mqtt_client = "Sergg/TechSpace/Plc/ESP8266";
 
-#define mqtt_user "highlysecure"
-#define mqtt_password "N4xnpPTru43T8Lmk"
+//#define mqtt_user "highlysecure"
+//#define mqtt_password "N4xnpPTru43T8Lmk"
 
+#define mqtt_user " "
+#define mqtt_password " "
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -79,6 +81,8 @@ void reconnect() {
     Serial.print("Attempting MQTT connection...");
     if (client.connect(mqtt_client, mqtt_user, mqtt_password)) {
       Serial.println("connected");
+
+      //client.subscribe("#"); // subscribe all topics
 
       client.subscribe("Sergg/TechSpace/Plc/ESP8266/LCD");
 
@@ -157,14 +161,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
     lcd.home();                // At column=0, row=0
 
     for (int i = 3; i < 19; i++) {
-      lcd.setCursor(i-3, 0);
+      lcd.setCursor(i - 3, 0);
       lcd.print((char)payload[i]);
-      Serial.print((char)payload[i]);
+      //Serial.print((char)payload[i]);
     }
     for (int i = 19; i < 35; i++) {
       lcd.setCursor(i - 19, 1);
       lcd.print((char)payload[i]);
-      Serial.print((char)payload[i]);
+      //Serial.print((char)payload[i]);
     }
   }
 
